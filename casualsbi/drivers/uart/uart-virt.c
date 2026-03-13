@@ -3,7 +3,34 @@
  */
 
 #include <casualsbi.h>
-#include <platform.h>
+
+/* NS16550A UART Registers */
+#define UART_THR    0x00    /* Transmitter Holding Register */
+#define UART_RBR    0x00    /* Receiver Buffer Register */
+#define UART_DLL    0x00    /* Divisor Latch Low */
+#define UART_IER    0x01    /* Interrupt Enable Register */
+#define UART_DLM    0x01    /* Divisor Latch High */
+#define UART_IIR    0x02    /* Interrupt Identity Register */
+#define UART_FCR    0x02    /* FIFO Control Register */
+#define UART_LCR    0x03    /* Line Control Register */
+#define UART_MCR    0x04    /* Modem Control Register */
+#define UART_LSR    0x05    /* Line Status Register */
+#define UART_MSR    0x06    /* Modem Status Register */
+#define UART_SCR    0x07    /* Scratch Register */
+
+/* UART LSR bits */
+#define UART_LSR_DR     0x01    /* Data Ready */
+#define UART_LSR_THRE   0x20    /* Transmitter Holding Register Empty */
+#define UART_LSR_TEMT   0x40    /* Transmitter Empty */
+
+/* UART FCR bits */
+#define UART_FCR_FIFO_EN    0x01
+#define UART_FCR_CLEAR_RX   0x02
+#define UART_FCR_CLEAR_TX   0x04
+
+/* UART LCR bits */
+#define UART_LCR_WLEN8      0x03    /* 8-bit words */
+#define UART_LCR_DLAB       0x80    /* Divisor Latch Access */
 
 /* UART base address */
 static volatile uint8_t *uart_base = (volatile uint8_t *)QEMU_VIRT_UART_BASE;

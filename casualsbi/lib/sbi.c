@@ -119,7 +119,6 @@ static void early_init(void)
     platform_early_init();
 }
 
-/* Main initialization */
 void sbi_init(void)
 {
     /* Early initialization */

@@ -5,13 +5,11 @@
 
 #include <casualsbi.h>
 #include <platform.h>
-
-/* Architecture-specific headers */
-#if defined(ARCH_RISCV)
 #include <arch/riscv/arch.h>
-#elif defined(ARCH_ARM)
-#include <arch/arm/arch.h>
-#endif
+
+#define QEMU_VIRT_DRAM_BASE     0x80000000UL
+#define QEMU_VIRT_DRAM_SIZE     0x8000000UL   /* 128MB */
+#define QEMU_VIRT_UART_BASE     0x10000000UL  /* NS16550A */
 
 /* Console operations using UART directly */
 static void console_init_direct(void)

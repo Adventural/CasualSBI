@@ -5,13 +5,10 @@
 
 #include <casualsbi.h>
 #include <platform.h>
-
-/* Architecture-specific headers */
-#if defined(ARCH_RISCV)
-#include <arch/riscv/arch.h>
-#elif defined(ARCH_ARM)
 #include <arch/arm/arch.h>
-#endif
+
+#define QEMU_VIRT_DRAM_BASE     0x40000000UL
+#define QEMU_VIRT_UART_BASE     0x9000000UL   /* PL011 */
 
 /* Console operations using UART directly */
 static void console_init_direct(void)
@@ -164,4 +161,11 @@ void platform_reboot(void)
     while (1) {
         __asm__ __volatile__("wfi");
     }
+}
+
+void platform_init(void)
+{
+
+
+    platform_register_ops()
 }
