@@ -1,0 +1,149 @@
+/*
+ * CasualSBI - Main entry point
+ * Cross-architecture support
+ */
+
+#include <casualsbi.h>
+#include <platform.h>
+
+/* Architecture-specific headers */
+#if defined(ARCH_RISCV)
+#include <arch/riscv/arch.h>
+#elif defined(ARCH_ARM)
+#include <arch/arm/arch.h>
+#endif
+
+/* Global SBI interface pointer */
+const struct sbi_interface *sbi = NULL;
+
+/* Platform operations exported from platform.c */
+extern const struct sbi_console_ops *platform_get_console_ops(void);
+extern const struct sbi_timer_ops *platform_get_timer_ops(void);
+extern const struct sbi_platform_ops *platform_get_platform_ops(void);
+
+/* Local SBI interface structure */
+static struct sbi_interface local_sbi;
+
+/* Architecture name for display */
+#if defined(ARCH_RISCV)
+    #if __riscv_xlen == 64
+        #define ARCH_NAME "RISC-V 64-bit"
+    #else
+        #define ARCH_NAME "RISC-V 32-bit"
+    #endif
+#elif defined(ARCH_ARM)
+    #define ARCH_NAME "ARM 64-bit (AArch64)"
+#else
+    #define ARCH_NAME "Unknown"
+#endif
+
+/* Architecture initialization function */
+static void arch_init(void)
+{
+#if defined(ARCH_RISCV)
+    riscv_init();
+#elif defined(ARCH_ARM)
+    arm_init();
+#else
+    #error "Unsupported architecture"
+#endif
+}
+
+/* Read architecture-specific timer */
+static uint64_t arch_read_time(void)
+{
+#if defined(ARCH_RISCV)
+    return csr_read(time);
+#elif defined(ARCH_ARM)
+    return arm_read_time();
+#else
+    return 0;
+#endif
+}
+
+/* Main application entry */
+void sbi_main(void)
+{
+    sbi_printf("\n");
+    sbi_printf("========================================\n");
+    sbi_printf("  CasualSBI Hardware Abstraction Layer\n");
+    sbi_printf("========================================\n");
+    sbi_printf("\n");
+    
+    sbi_printf("Architecture: %s\n", ARCH_NAME);
+    sbi_printf("Platform: QEMU Virt Machine\n");
+    sbi_printf("Version: %d.%d.%d\n", 
+               CASUALSBI_VERSION_MAJOR,
+               CASUALSBI_VERSION_MINOR,
+               CASUALSBI_VERSION_PATCH);
+    sbi_printf("\n");
+    
+    /* Print some system information */
+    uint64_t time = arch_read_time();
+    sbi_printf("Current time: 0x%016lx\n", time);
+    
+    /* Test printf with various formats */
+    sbi_printf("\nFormat test:\n");
+    sbi_printf("  Integer: %d\n", 42);
+    sbi_printf("  Negative: %d\n", -123);
+    sbi_printf("  Unsigned: %u\n", 0xFFFFFFFF);
+    sbi_printf("  Hex: 0x%x\n", 0xABCD);
+    sbi_printf("  Long hex: 0x%lx\n", 0xDEADBEEFCAFEBABEUL);
+    sbi_printf("  Pointer: %p\n", (void*)QEMU_VIRT_DRAM_BASE);
+    sbi_printf("  String: %s\n", "Hello from CasualSBI!");
+    sbi_printf("  Char: %c\n", 'X');
+    sbi_printf("\n");
+    
+    sbi_printf("System initialized successfully!\n");
+    sbi_printf("Entering main loop...\n\n");
+    
+    /* Simple test: output a message and shutdown */
+    sbi_printf("Demo complete. Shutting down in 3 seconds...\n");
+    
+    /* Simple countdown */
+    for (int i = 3; i > 0; i--) {
+        sbi_printf("%d...\n", i);
+        /* Simple delay loop */
+        volatile uint64_t count = 10000000;
+        while (count--) __asm__ volatile("nop");
+    }
+    
+    sbi_printf("Goodbye!\n");
+    sbi_shutdown();
+}
+
+/* Early initialization before C runtime */
+static void early_init(void)
+{
+    /* Initialize UART for early output */
+    platform_early_init();
+}
+
+/* Main initialization */
+void sbi_init(void)
+{
+    /* Early initialization */
+    early_init();
+    
+    /* Initialize architecture-specific code */
+    arch_init();
+    
+    /* Initialize platform */
+    platform_init();
+    
+    /* Setup SBI interface structure */
+    local_sbi.console = platform_get_console_ops();
+    local_sbi.timer = platform_get_timer_ops();
+    local_sbi.platform = platform_get_platform_ops();
+    local_sbi.irq = NULL;  /* Not implemented yet */
+    local_sbi.mem = NULL;  /* Not implemented yet */
+    
+    /* Set global SBI pointer */
+    sbi = &local_sbi;
+    
+    /* Call main application */
+    sbi_main();
+    
+    /* Should not return, but shutdown if it does */
+    sbi_shutdown();
+}
