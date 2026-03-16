@@ -6,12 +6,6 @@
 .section .text.boot
 .global _start
 
-/* QEMU Virt UART address */
-.equ UART_BASE, 0x10000000
-.equ UART_THR, 0x00
-.equ UART_LSR, 0x05
-.equ UART_LSR_THRE, 0x20
-
 _start:
     /* 
      * The hartid is in a0, device tree address is in a1

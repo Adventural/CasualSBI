@@ -20,9 +20,9 @@ void platform_shutdown(void);
 void platform_reboot(void);
 
 /* Platform UART functions */
-void uart_init(void);
-void uart_putc(char c);
-char uart_getc(void);
-bool uart_avail(void);
+// void uart_init(void);
+// void uart_putc(char c);
+// char uart_getc(void);
+// bool uart_avail(void);
 
 #endif /* _PLATFORM_H_ */
