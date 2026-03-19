@@ -41,13 +41,16 @@ endif
 ifeq ($(CONFIG_DRIVER_UART_VIRT), y)
 C_SOURCES	+= $(SRC_DIR)/drivers/uart/uart-virt.c
 endif
+ifeq ($(CONFIG_DRIVER_PLIC), y)
+C_SOURCES	+= $(SRC_DIR)/drivers/plic/plic.c
+endif
 
 ASM_SOURCES = $(wildcard $(SRC_DIR)/$(ARCH_DIR)/*.S)
 
 OBJECTS     = $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(C_SOURCES))) \
               $(patsubst %.S,$(BUILD_DIR)/%.o,$(notdir $(ASM_SOURCES)))
 
-VPATH       = $(SRC_DIR)/lib $(SRC_DIR)/$(ARCH_DIR) $(SRC_DIR)/$(PLAT_DIR) $(SRC_DIR)/drivers/uart
+VPATH       = $(SRC_DIR)/lib $(SRC_DIR)/$(ARCH_DIR) $(SRC_DIR)/$(PLAT_DIR) $(SRC_DIR)/drivers/uart $(SRC_DIR)/drivers/plic
 
 # Architecture-specific compiler flags
 ifeq ($(ARCH),riscv)
@@ -61,7 +64,7 @@ endif
 # Common compiler flags
 CFLAGS      = $(ARCH_CFLAGS)
 CFLAGS     += -Wall -Wextra -O2 -g -nostdlib -nostartfiles -ffreestanding
-CFLAGS     += -I$(SRC_DIR)/include -I$(SRC_DIR)/include/arch/$(ARCH)
+CFLAGS     += -I$(SRC_DIR)/include -I$(SRC_DIR)/include/arch/$(ARCH) -I$(SRC_DIR)
 CFLAGS     += -DARCH_$(subst -,_,$(shell echo $(ARCH) | tr a-z A-Z))
 CFLAGS     += -DPLATFORM_$(subst -,_,$(shell echo $(PLATFORM) | tr a-z A-Z))
 
@@ -127,8 +130,7 @@ run: $(TARGET)
 debug: $(TARGET)
 	@echo "Starting QEMU for debugging..."
 	@qemu-system-$(QEMU_ARCH) -machine $(QEMU_MACHINE) -cpu $(QEMU_CPU) -smp 1 -m 128M \
-		$(QEMU_BIOS) -kernel $(TARGET) -nographic -S -s &
-	@echo "Connect with: $(CROSS_COMPILE)gdb $(TARGET) -ex 'target remote :1234'"
+		$(QEMU_BIOS) -kernel $(TARGET) -nographic -S -s
 
 clean:
 	@rm -rf build/

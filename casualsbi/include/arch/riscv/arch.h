@@ -22,6 +22,21 @@
 #define CSR_TIME        0xC01
 #define CSR_TIMEH       0xC81
 
+/* MSTATUS */
+#define MSTATUS_SIE     (1UL << 1)
+#define MSTATUS_MIE     (1UL << 3)
+#define MSTATUS_SPIE    (1UL << 5)
+#define MSTATUS_MPIE    (1UL << 7)
+#define MSTATUS_SPP     (1UL << 8)
+
+/* MIE */
+#define MIE_SSIE        (1UL << 1)
+#define MIE_MSIE        (1UL << 3)
+#define MIE_STIE        (1UL << 5)
+#define MIE_MTIE        (1UL << 7)
+#define MIE_SEIE        (1UL << 9)
+#define MIE_MEIE        (1UL << 11)
+
 /* SSTATUS fields */
 #define SSTATUS_SIE     (1UL << 1)
 #define SSTATUS_SPIE    (1UL << 5)
@@ -86,8 +101,15 @@
     __asm__ __volatile__ ("csrc " #csr ", %0" : : "r" (__v));  \
 })
 
-/* Barrier */
-#define barrier() __asm__ __volatile__("" ::: "memory")
+static inline void barrier(void)
+{
+    __asm__ __volatile__("" ::: "memory");
+}
+
+static inline void wfi(void)
+{
+    __asm__ __volatile__("wfi");
+}
 
 /* RISC-V specific initialization */
 void riscv_init(void);

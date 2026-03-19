@@ -4,13 +4,6 @@
 
 #include <casualsbi.h>
 
-void sbi_puts(const char *str)
-{
-    while (*str) {
-        sbi_putc(*str++);
-    }
-}
-
 static void print_dec(unsigned long n)
 {
     char buf[32];

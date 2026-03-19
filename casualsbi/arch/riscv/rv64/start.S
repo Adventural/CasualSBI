@@ -30,6 +30,9 @@ _clear_bss:
     j _clear_bss
 _bss_done:
 
+    /* RISCV Arch Init */
+    call arch_init
+
     /* Jump to C code */
     call sbi_init
 

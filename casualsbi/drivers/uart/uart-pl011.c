@@ -48,28 +48,6 @@ static inline uint32_t pl011_read_reg(int reg)
     return uart_base[reg];
 }
 
-void uart_init(void)
-{
-    /* Disable UART */
-    pl011_write_reg(PL011_CR, 0);
-    
-    /* Clear interrupts */
-    pl011_write_reg(PL011_ICR, 0x7FF);
-    
-    /* Set baud rate - 115200 with 48MHz clock
-     * IBRD = 48MHz / (16 * 115200) = 26
-     * FBRD = 0.042 * 64 = 2.7 ≈ 3
-     */
-    pl011_write_reg(PL011_IBRD, 26);
-    pl011_write_reg(PL011_FBRD, 3);
-    
-    /* 8 data bits, 1 stop bit, no parity, FIFO enabled */
-    pl011_write_reg(PL011_LCRH, PL011_LCRH_WLEN_8BIT | PL011_LCRH_FEN);
-    
-    /* Enable UART, TX and RX */
-    pl011_write_reg(PL011_CR, PL011_CR_UARTEN | PL011_CR_TXE | PL011_CR_RXE);
-}
-
 void uart_putc(char c)
 {
     /* Wait for TX FIFO not full */
@@ -91,4 +69,37 @@ char uart_getc(void)
 bool uart_avail(void)
 {
     return !(pl011_read_reg(PL011_FR) & PL011_FR_RXFE);
+}
+
+void uart_reg_init(void)
+{
+    /* Disable UART */
+    pl011_write_reg(PL011_CR, 0);
+    
+    /* Clear interrupts */
+    pl011_write_reg(PL011_ICR, 0x7FF);
+    
+    /* Set baud rate - 115200 with 48MHz clock
+     * IBRD = 48MHz / (16 * 115200) = 26
+     * FBRD = 0.042 * 64 = 2.7 ≈ 3
+     */
+    pl011_write_reg(PL011_IBRD, 26);
+    pl011_write_reg(PL011_FBRD, 3);
+    
+    /* 8 data bits, 1 stop bit, no parity, FIFO enabled */
+    pl011_write_reg(PL011_LCRH, PL011_LCRH_WLEN_8BIT | PL011_LCRH_FEN);
+    
+    /* Enable UART, TX and RX */
+    pl011_write_reg(PL011_CR, PL011_CR_UARTEN | PL011_CR_TXE | PL011_CR_RXE);
+}
+
+void uart_init(void)
+{
+    struct sbi_console_ops uart_ops;
+
+    uart_reg_init();
+
+    uart_ops.putc = uart_putc;
+    uart_ops.getc = uart_getc;
+    sbi_register_console(&uart_ops);
 }

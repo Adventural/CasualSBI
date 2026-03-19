@@ -33,7 +33,7 @@
 #define UART_LCR_DLAB       0x80    /* Divisor Latch Access */
 
 /* UART base address */
-static volatile uint8_t *uart_base = (volatile uint8_t *)QEMU_VIRT_UART_BASE;
+static volatile uint8_t *uart_base;
 
 static inline void uart_write_reg(int reg, uint8_t val)
 {
@@ -45,8 +45,10 @@ static inline uint8_t uart_read_reg(int reg)
     return uart_base[reg];
 }
 
-void uart_init(void)
+void uart_reg_init(uint8_t *base)
 {
+    uart_base = (volatile uint8_t*)base;
+
     /* Disable interrupts */
     uart_write_reg(UART_IER, 0x00);
     
@@ -89,4 +91,15 @@ char uart_getc(void)
 bool uart_avail(void)
 {
     return (uart_read_reg(UART_LSR) & UART_LSR_DR) != 0;
+}
+
+void uart_init(uint8_t *base)
+{
+    struct sbi_console_ops uart_ops;
+
+    uart_reg_init(base);
+
+    uart_ops.putc = uart_putc;
+    uart_ops.getc = uart_getc;
+    sbi_register_console(&uart_ops);
 }
